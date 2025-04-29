@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mano_simp/config/theme_config.dart';
 
 class MemoryGrid extends StatelessWidget {
   final Map<String, dynamic> memoryConfig;
@@ -15,50 +14,49 @@ class MemoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cols = memoryConfig['cols'];
-    final rows = memoryConfig['rows'];
-    final cellW = memoryConfig['cellW'].toDouble();
-    final cellH = memoryConfig['cellH'].toDouble();
+    // Use fewer memory cells - just 4 for demonstration
+    const rows = 1;
+    const cols = 4;
+    const cellWidth = 60.0;
+    const cellHeight = 30.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Memory',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Memory label
+          Text(
+            'Memory',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black26),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Column(
-            children: List.generate(rows, (row) {
-              return Row(
-                children: List.generate(cols, (col) {
-                  // Calculate memory address
-                  final address = (row * cols + col).toInt();
-                  final isSelected = address == selectedAddress;
+          const SizedBox(height: 4),
 
-                  return _buildMemoryCell(
-                    context,
-                    row,
-                    col,
-                    address,
-                    isSelected,
-                    cellW,
-                    cellH,
-                  );
-                }),
+          // Simple memory cells in a row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(cols, (col) {
+              // Calculate memory address
+              final address = col;
+              final isSelected = address == selectedAddress;
+
+              return _buildMemoryCell(
+                context,
+                0,
+                col,
+                address,
+                isSelected,
+                cellWidth,
+                cellHeight,
               );
             }),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -71,47 +69,33 @@ class MemoryGrid extends StatelessWidget {
     double width,
     double height,
   ) {
-    final animDuration = Duration(
-      milliseconds: ThemeConfig.config['animations']['highlightDurationMs'],
-    );
-
     // Get value from memory (safely)
     int value = 0;
     if (row < memory.length && col < memory[row].length) {
       value = memory[row][col];
     }
 
-    return AnimatedContainer(
-      duration: animDuration,
-      curve: Curves.easeInOut,
+    return Container(
       width: width,
       height: height,
+      margin: EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: isSelected
-            ? ThemeConfig.getColorFromHex(
-                ThemeConfig.config['theme']['highlightColor'])
-            : ThemeConfig.getColorFromHex(
-                ThemeConfig.config['theme']['registerColor']),
-        border: Border.all(color: Colors.black12),
+        color: isSelected ? Colors.black12 : Colors.white,
+        border: Border.all(
+          color: Colors.black,
+          width: 1.0,
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Address in hex
+          // Address and value in hex
           Text(
-            address.toRadixString(16).padLeft(2, '0').toUpperCase(),
-            style: TextStyle(
-              fontSize: 8,
-              color: Colors.black54,
-            ),
-          ),
-          // Value in hex
-          Text(
-            value.toRadixString(16).padLeft(4, '0').toUpperCase(),
+            "${address.toRadixString(16).padLeft(2, '0').toUpperCase()}: ${value.toRadixString(16).padLeft(4, '0').toUpperCase()}",
             style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.bold,
-              fontFamily: ThemeConfig.config['theme']['fontFamilyMono'],
+              color: Colors.black,
+              fontFamily: 'RobotoMono',
             ),
           ),
         ],

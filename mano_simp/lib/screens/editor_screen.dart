@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mano_simp/providers/editor_provider.dart';
-import 'package:mano_simp/config/theme_config.dart';
 
 class EditorScreen extends StatelessWidget {
   const EditorScreen({Key? key}) : super(key: key);
@@ -9,10 +8,6 @@ class EditorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final editorProvider = Provider.of<EditorProvider>(context);
-    final editorConfig =
-        ThemeConfig.config['layout']['screens']['Editor']['console'];
-    final runButtonConfig =
-        ThemeConfig.config['layout']['screens']['Editor']['runButton'];
 
     return SafeArea(
       child: Scaffold(
@@ -21,87 +16,93 @@ class EditorScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Code editor
-              Container(
-                width: editorConfig['w'].toDouble(),
-                height: editorConfig['h'].toDouble(),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(4.0),
-                  border: Border.all(color: Colors.grey[300]!),
+              // Simple title
+              Text(
+                'Mano Assembly Code',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                child: TextField(
-                  controller: editorProvider.codeController,
-                  style: TextStyle(
-                    fontFamily: ThemeConfig.config['theme']['fontFamilyMono'],
-                    fontSize: editorConfig['fontSize'].toDouble(),
+              ),
+              SizedBox(height: 8),
+
+              // Code editor
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    color: Colors.white,
                   ),
-                  maxLines: null,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(8.0),
-                    hintText: 'Enter Mano assembly code here...',
+                  child: TextField(
+                    controller: editorProvider.codeController,
+                    style: TextStyle(
+                      fontFamily: 'RobotoMono',
+                      fontSize: 14,
+                    ),
+                    maxLines: null,
+                    expands: true,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(8.0),
+                      hintText: 'Enter Mano assembly code here...',
+                    ),
+                    onChanged: (_) => editorProvider.updateCode(),
                   ),
-                  onChanged: (_) => editorProvider.updateCode(),
                 ),
               ),
 
               // Error messages
               if (editorProvider.errors.isNotEmpty)
                 Container(
-                  width: editorConfig['w'].toDouble(),
+                  width: double.infinity,
                   padding: const EdgeInsets.all(8.0),
                   margin: const EdgeInsets.only(top: 8.0),
                   decoration: BoxDecoration(
-                    color: ThemeConfig.getColorFromHex(
-                            ThemeConfig.config['theme']['errorColor'])
-                        .withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4.0),
+                    color: Colors.black12,
+                    border: Border.all(color: Colors.black),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: editorProvider.errors
-                        .map((error) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                error,
+                    children: [
+                      Text(
+                        'Errors:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      ...editorProvider.errors
+                          .map((error) => Text(
+                                '• $error',
                                 style: TextStyle(
-                                  color: ThemeConfig.getColorFromHex(ThemeConfig
-                                      .config['theme']['errorColor']),
+                                  color: Colors.black,
                                   fontSize: 12.0,
                                 ),
-                              ),
-                            ))
-                        .toList(),
+                              ))
+                          .toList(),
+                    ],
                   ),
                 ),
 
-              // Run button
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: SizedBox(
-                  width: runButtonConfig['w'].toDouble(),
-                  height: runButtonConfig['h'].toDouble(),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeConfig.getColorFromHex(
-                          ThemeConfig.config['theme']['primaryColor']),
+              // Controls
+              Container(
+                margin: EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    // Run button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => editorProvider.runCode(context),
+                        child: Text('Run'),
+                      ),
                     ),
-                    onPressed: () => editorProvider.runCode(context),
-                    child: Text(
-                      runButtonConfig['text'],
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Sample code button (for easy testing)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: TextButton(
-                  onPressed: () {
-                    editorProvider.codeController.text = '''ORG 100
+                    SizedBox(width: 8),
+                    // Sample code button
+                    OutlinedButton(
+                      onPressed: () {
+                        editorProvider.codeController.text = '''ORG 100
 LDA 500
 ADD 501
 STA 502
@@ -111,9 +112,11 @@ DEC 75
 DEC 25
 DEC 0
 END''';
-                    editorProvider.updateCode();
-                  },
-                  child: const Text('Load Sample Code'),
+                        editorProvider.updateCode();
+                      },
+                      child: Text('Sample Code'),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mano_simp/config/theme_config.dart';
 import 'package:mano_simp/models/register_model.dart';
 import 'package:mano_simp/models/simulation_state.dart';
 
@@ -20,32 +19,37 @@ class SimulationProvider extends ChangeNotifier {
   final SimulationState simulationState = SimulationState();
 
   SimulationProvider() {
-    initRegisters();
     initConfigs();
+    // Wait for the first frame to get screen dimensions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initRegisters();
+    });
   }
 
   void initRegisters() {
-    final registerConfigs = ThemeConfig.config['layout']['screens']
-        ['Simulation']['registers'] as List;
+    // Create registers with new positions to surround the central bus
+    registers = [
+      // Top row - above the bus
+      Register(id: "AR", x: 30, y: 50, w: 64, h: 32),
+      Register(id: "PC", x: 114, y: 50, w: 64, h: 32),
+      Register(id: "DR", x: 198, y: 50, w: 64, h: 32),
+      Register(id: "AC", x: 282, y: 50, w: 64, h: 32),
 
-    registers = registerConfigs
-        .map((config) => Register(
-              id: config['id'],
-              x: config['x'].toDouble(),
-              y: config['y'].toDouble(),
-              w: config['w'].toDouble(),
-              h: config['h'].toDouble(),
-            ))
-        .toList();
+      // Bottom row - below the bus
+      Register(id: "INPR", x: 30, y: 170, w: 64, h: 32),
+      Register(id: "IR", x: 114, y: 170, w: 64, h: 32),
+      Register(id: "TR", x: 198, y: 170, w: 64, h: 32),
+      Register(id: "OUTR", x: 282, y: 170, w: 64, h: 32),
+    ];
+    notifyListeners();
   }
 
   void initConfigs() {
-    final simulationConfig =
-        ThemeConfig.config['layout']['screens']['Simulation'];
-
-    aluConfig = simulationConfig['alu'];
-    busConfig = simulationConfig['bus'];
-    memoryConfig = simulationConfig['memory'];
+    // Simple configs - the specific values aren't as important anymore since
+    // our widgets are more responsive now
+    aluConfig = {"x": 160, "y": 100, "w": 80, "h": 40};
+    busConfig = {"y": 120, "h": 2};
+    memoryConfig = {};
   }
 
   // Methods to update register values
@@ -89,19 +93,12 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
 
     // After a delay, highlight destination register
-    Future.delayed(
-        Duration(
-            milliseconds:
-                ThemeConfig.config['animations']['highlightDurationMs'] ~/ 2),
-        () {
+    Future.delayed(Duration(milliseconds: 400), () {
       highlightRegister(to);
       notifyListeners();
 
       // After another delay, clear all highlights
-      Future.delayed(
-          Duration(
-              milliseconds: ThemeConfig.config['animations']
-                  ['highlightDurationMs']), () {
+      Future.delayed(Duration(milliseconds: 400), () {
         clearAllHighlights();
       });
     });

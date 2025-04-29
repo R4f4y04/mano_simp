@@ -24,19 +24,57 @@ class ManoSimpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Minimal black and white color scheme
+    final blackColor = Color(0xFF000000);
+    final darkGrayColor = Color(0xFF333333);
+    final mediumGrayColor = Color(0xFF666666);
+    final lightGrayColor = Color(0xFFDDDDDD);
+    final whiteColor = Color(0xFFFFFFFF);
+
     return MaterialApp(
       title: ThemeConfig.config['appName'],
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: ThemeConfig.getColorFromHex(
-            ThemeConfig.config['theme']['primaryColor']),
-        scaffoldBackgroundColor: ThemeConfig.getColorFromHex(
-            ThemeConfig.config['theme']['backgroundColor']),
-        fontFamily: 'Roboto',
-        textTheme: TextTheme(
-          bodyMedium: GoogleFonts.getFont(
-            'Roboto',
+        useMaterial3: true,
+        colorScheme: ColorScheme.light(
+          primary: blackColor,
+          secondary: darkGrayColor,
+          background: whiteColor,
+          onBackground: blackColor,
+          surface: whiteColor,
+          onSurface: blackColor,
+        ),
+        scaffoldBackgroundColor: whiteColor,
+        appBarTheme: AppBarTheme(
+          backgroundColor: blackColor,
+          foregroundColor: whiteColor,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: blackColor,
+            foregroundColor: whiteColor,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
         ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: blackColor,
+            side: BorderSide(color: blackColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: blackColor,
+          ),
+        ),
+        fontFamily: GoogleFonts.roboto().fontFamily,
       ),
       home: const HomeScreen(),
     );
@@ -69,35 +107,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final navConfig = ThemeConfig.config['layout']['navBar'];
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(ThemeConfig.config['appName']),
-        backgroundColor: ThemeConfig.getColorFromHex(
-            ThemeConfig.config['theme']['primaryColor']),
+        title: Text(
+          ThemeConfig.config['appName'],
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         elevation: 0,
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.memory),
+            label: 'Simulation',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.code),
+            label: 'Editor',
+          ),
+        ],
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        items: List.generate(
-          navConfig['tabs'].length,
-          (index) => BottomNavigationBarItem(
-            icon: Icon(
-              index == 0 ? Icons.memory : Icons.code,
-              size: _selectedIndex == index
-                  ? navConfig['activeIconSize'].toDouble()
-                  : navConfig['inactiveIconSize'].toDouble(),
-            ),
-            label: navConfig['tabs'][index],
-          ),
-        ),
       ),
     );
   }

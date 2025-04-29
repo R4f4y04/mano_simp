@@ -15,65 +15,87 @@ class SimulationScreen extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        body: Stack(
+        body: Column(
           children: [
-            // Bus widget (rendered first to be behind registers)
-            BusWidget(
-              busConfig: simulationProvider.busConfig,
-            ),
+            // Main simulation view
+            Expanded(
+              flex: 4,
+              child: Stack(
+                children: [
+                  // Bus widget needs to be first to be behind registers
+                  BusWidget(
+                    busConfig: simulationProvider.busConfig,
+                  ),
 
-            // Registers
-            ...simulationProvider.registers
-                .map((register) => RegisterWidget(register: register))
-                .toList(),
+                  // Registers
+                  ...simulationProvider.registers
+                      .map((register) => RegisterWidget(register: register))
+                      .toList(),
 
-            // ALU
-            ALUWidget(
-              aluConfig: simulationProvider.aluConfig,
-            ),
-
-            // Memory grid
-            Positioned(
-              left: simulationProvider.memoryConfig['x'].toDouble(),
-              top: simulationProvider.memoryConfig['y'].toDouble(),
-              child: MemoryGrid(
-                memoryConfig: simulationProvider.memoryConfig,
-                memory: simulationProvider.simulationState.memory,
-                selectedAddress:
-                    simulationProvider.simulationState.selectedMemoryAddress,
+                  // ALU
+                  ALUWidget(
+                    aluConfig: simulationProvider.aluConfig,
+                  ),
+                ],
               ),
             ),
 
-            // Demo controls for testing animations (optional)
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Memory and controls
+            Expanded(
+              flex: 2,
+              child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Simulate data transfer from AR to DR
-                      simulationProvider.simulateBusTransfer('AR', 'DR');
-                    },
-                    child: const Text('AR → DR'),
+                  // Memory cells
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: MemoryGrid(
+                      memoryConfig: simulationProvider.memoryConfig,
+                      memory: simulationProvider.simulationState.memory,
+                      selectedAddress: simulationProvider
+                          .simulationState.selectedMemoryAddress,
+                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Simulate data transfer from PC to AR
-                      simulationProvider.simulateBusTransfer('PC', 'AR');
-                    },
-                    child: const Text('PC → AR'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Update some registers with sample values
-                      simulationProvider.setRegisterValue('AC', 0x1234);
-                      simulationProvider.setRegisterValue('PC', 0x00FF);
-                      simulationProvider.setMemoryValue(0, 0xAAAA);
-                    },
-                    child: const Text('Set Values'),
+
+                  // Simple controls
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            minimumSize:
+                                MaterialStateProperty.all(Size(80, 36)),
+                          ),
+                          onPressed: () {
+                            simulationProvider.simulateBusTransfer('AR', 'DR');
+                          },
+                          child: Text('AR → DR'),
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            minimumSize:
+                                MaterialStateProperty.all(Size(80, 36)),
+                          ),
+                          onPressed: () {
+                            simulationProvider.simulateBusTransfer('PC', 'AR');
+                          },
+                          child: Text('PC → AR'),
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            minimumSize:
+                                MaterialStateProperty.all(Size(80, 36)),
+                          ),
+                          onPressed: () {
+                            simulationProvider.setRegisterValue('AC', 0x1234);
+                            simulationProvider.setRegisterValue('PC', 0x00FF);
+                            simulationProvider.setMemoryValue(0, 0xAAAA);
+                          },
+                          child: Text('Set'),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
