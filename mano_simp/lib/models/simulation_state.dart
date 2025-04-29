@@ -4,6 +4,9 @@ class SimulationState {
   String? sourceRegister;
   String? destinationRegister;
 
+  // ALU state
+  bool isAluActive = false;
+
   // Memory state
   List<List<int>> memory = List.generate(32, (_) => List.filled(8, 0));
   int selectedMemoryAddress = 0;

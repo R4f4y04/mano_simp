@@ -20,6 +20,9 @@ class MemoryGrid extends StatelessWidget {
     const cellWidth = 60.0;
     const cellHeight = 30.0;
 
+    // Highlight color - same amber color for consistency
+    final highlightColor = Color(0xFFFFD54F);
+
     return Container(
       width: MediaQuery.of(context).size.width,
       child: Column(
@@ -34,7 +37,7 @@ class MemoryGrid extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
 
           // Simple memory cells in a row
           Row(
@@ -52,6 +55,7 @@ class MemoryGrid extends StatelessWidget {
                 isSelected,
                 cellWidth,
                 cellHeight,
+                highlightColor,
               );
             }),
           ),
@@ -68,6 +72,7 @@ class MemoryGrid extends StatelessWidget {
     bool isSelected,
     double width,
     double height,
+    Color highlightColor,
   ) {
     // Get value from memory (safely)
     int value = 0;
@@ -75,26 +80,38 @@ class MemoryGrid extends StatelessWidget {
       value = memory[row][col];
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 400),
       width: width,
       height: height,
       margin: EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.black12 : Colors.white,
+        color: isSelected ? highlightColor.withOpacity(0.2) : Colors.white,
         border: Border.all(
-          color: Colors.black,
-          width: 1.0,
+          color: isSelected ? highlightColor : Colors.black,
+          width: isSelected ? 2.0 : 1.0,
         ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: highlightColor.withOpacity(0.3),
+                  blurRadius: 3,
+                  spreadRadius: 1,
+                  offset: Offset(0, 1),
+                )
+              ]
+            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Address and value in hex
+          // Address and value in hex with improved visibility when selected
           Text(
             "${address.toRadixString(16).padLeft(2, '0').toUpperCase()}: ${value.toRadixString(16).padLeft(4, '0').toUpperCase()}",
             style: TextStyle(
               fontSize: 12,
-              color: Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.black : Colors.black87,
               fontFamily: 'RobotoMono',
             ),
           ),

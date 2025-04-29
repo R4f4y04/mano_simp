@@ -27,28 +27,26 @@ class SimulationProvider extends ChangeNotifier {
   }
 
   void initRegisters() {
-    // Create registers with new positions to surround the central bus
+    // Create registers with new positions - removed INPR and OUTR
+    // Positioning registers around the central bus
     registers = [
       // Top row - above the bus
-      Register(id: "AR", x: 30, y: 50, w: 64, h: 32),
-      Register(id: "PC", x: 114, y: 50, w: 64, h: 32),
-      Register(id: "DR", x: 198, y: 50, w: 64, h: 32),
-      Register(id: "AC", x: 282, y: 50, w: 64, h: 32),
+      Register(id: "AR", x: 30, y: 60, w: 64, h: 32),
+      Register(id: "PC", x: 114, y: 60, w: 64, h: 32),
+      Register(id: "DR", x: 198, y: 60, w: 64, h: 32),
 
       // Bottom row - below the bus
-      Register(id: "INPR", x: 30, y: 170, w: 64, h: 32),
+      Register(id: "AC", x: 30, y: 170, w: 64, h: 32),
       Register(id: "IR", x: 114, y: 170, w: 64, h: 32),
       Register(id: "TR", x: 198, y: 170, w: 64, h: 32),
-      Register(id: "OUTR", x: 282, y: 170, w: 64, h: 32),
     ];
     notifyListeners();
   }
 
   void initConfigs() {
-    // Simple configs - the specific values aren't as important anymore since
-    // our widgets are more responsive now
-    aluConfig = {"x": 160, "y": 100, "w": 80, "h": 40};
-    busConfig = {"y": 120, "h": 2};
+    // Make the bus more prominent
+    busConfig = {"y": 120, "h": 5}; // Increased height to 5
+    aluConfig = {"x": 280, "y": 100, "w": 80, "h": 40}; // Move ALU to the right
     memoryConfig = {};
   }
 
@@ -77,6 +75,7 @@ class SimulationProvider extends ChangeNotifier {
     simulationState.isHighlightedBus = false;
     simulationState.sourceRegister = null;
     simulationState.destinationRegister = null;
+    simulationState.isAluActive = false;
     notifyListeners();
   }
 
@@ -100,6 +99,35 @@ class SimulationProvider extends ChangeNotifier {
       // After another delay, clear all highlights
       Future.delayed(Duration(milliseconds: 400), () {
         clearAllHighlights();
+      });
+    });
+  }
+
+  // ALU operation animation
+  void simulateAluOperation(String input1, String input2, String output) {
+    // First clear all highlights
+    clearAllHighlights();
+
+    // Step 1: Highlight input registers
+    highlightRegister(input1);
+    highlightRegister(input2);
+    notifyListeners();
+
+    // Step 2: After delay, highlight bus and ALU
+    Future.delayed(Duration(milliseconds: 400), () {
+      simulationState.isHighlightedBus = true;
+      simulationState.isAluActive = true;
+      notifyListeners();
+
+      // Step 3: Highlight output register
+      Future.delayed(Duration(milliseconds: 400), () {
+        highlightRegister(output);
+        notifyListeners();
+
+        // Step 4: Clear all highlights
+        Future.delayed(Duration(milliseconds: 400), () {
+          clearAllHighlights();
+        });
       });
     });
   }

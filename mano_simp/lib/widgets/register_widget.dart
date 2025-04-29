@@ -13,6 +13,9 @@ class RegisterWidget extends StatelessWidget {
       milliseconds: ThemeConfig.config['animations']['highlightDurationMs'],
     );
 
+    // Highlight color - subtle amber for better visibility while keeping minimalist design
+    final highlightColor = Color(0xFFFFD54F);
+
     return Positioned(
       left: register.x,
       top: register.y,
@@ -21,10 +24,10 @@ class RegisterWidget extends StatelessWidget {
           // Register label
           Text(
             register.id,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: register.isHighlighted ? highlightColor : Colors.black,
             ),
           ),
           const SizedBox(height: 2),
@@ -36,11 +39,23 @@ class RegisterWidget extends StatelessWidget {
             width: register.w,
             height: register.h,
             decoration: BoxDecoration(
-              color: register.isHighlighted ? Colors.black12 : Colors.white,
+              color: register.isHighlighted
+                  ? highlightColor.withOpacity(0.2)
+                  : Colors.white,
               border: Border.all(
-                color: Colors.black,
-                width: 1.0,
+                color: register.isHighlighted ? highlightColor : Colors.black,
+                width: register.isHighlighted ? 2.0 : 1.0,
               ),
+              boxShadow: register.isHighlighted
+                  ? [
+                      BoxShadow(
+                        color: highlightColor.withOpacity(0.4),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                        offset: Offset(0, 1),
+                      )
+                    ]
+                  : null,
             ),
             child: Center(
               child: Text(
@@ -48,7 +63,7 @@ class RegisterWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: register.isHighlighted ? Colors.black : Colors.black87,
                   fontFamily: 'RobotoMono',
                 ),
               ),
