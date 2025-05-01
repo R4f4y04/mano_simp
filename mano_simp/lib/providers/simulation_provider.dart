@@ -6,9 +6,6 @@ class SimulationProvider extends ChangeNotifier {
   // Registers
   List<Register> registers = [];
 
-  // ALU configuration
-  Map<String, dynamic> aluConfig = {};
-
   // Bus configuration
   Map<String, dynamic> busConfig = {};
 
@@ -46,7 +43,6 @@ class SimulationProvider extends ChangeNotifier {
   void initConfigs() {
     // Make the bus more prominent
     busConfig = {"y": 120, "h": 5}; // Increased height to 5
-    aluConfig = {"x": 280, "y": 100, "w": 80, "h": 40}; // Move ALU to the right
     memoryConfig = {};
   }
 
@@ -75,7 +71,6 @@ class SimulationProvider extends ChangeNotifier {
     simulationState.isHighlightedBus = false;
     simulationState.sourceRegister = null;
     simulationState.destinationRegister = null;
-    simulationState.isAluActive = false;
     notifyListeners();
   }
 
@@ -103,33 +98,70 @@ class SimulationProvider extends ChangeNotifier {
     });
   }
 
-  // ALU operation animation
-  void simulateAluOperation(String input1, String input2, String output) {
+  // AC operation animation (replacing ALU operation)
+  void simulateAcOperation(String input) {
     // First clear all highlights
     clearAllHighlights();
 
-    // Step 1: Highlight input registers
-    highlightRegister(input1);
-    highlightRegister(input2);
+    // Step 1: Highlight input register
+    highlightRegister(input);
+    simulationState.isHighlightedBus = true;
+    simulationState.sourceRegister = input;
+    simulationState.destinationRegister = "AC";
     notifyListeners();
 
-    // Step 2: After delay, highlight bus and ALU
+    // Step 2: After delay, highlight AC register
     Future.delayed(Duration(milliseconds: 400), () {
-      simulationState.isHighlightedBus = true;
-      simulationState.isAluActive = true;
+      highlightRegister("AC");
       notifyListeners();
 
-      // Step 3: Highlight output register
+      // Step 3: Clear all highlights
       Future.delayed(Duration(milliseconds: 400), () {
-        highlightRegister(output);
-        notifyListeners();
-
-        // Step 4: Clear all highlights
-        Future.delayed(Duration(milliseconds: 400), () {
-          clearAllHighlights();
-        });
+        clearAllHighlights();
       });
     });
+  }
+
+  // Simulate ADD operation with AC
+  void simulateAdd(String source) {
+    // Get register values
+    final acIndex = registers.indexWhere((register) => register.id == "AC");
+    final sourceIndex =
+        registers.indexWhere((register) => register.id == source);
+
+    if (acIndex != -1 && sourceIndex != -1) {
+      final acValue = registers[acIndex].value;
+      final sourceValue = registers[sourceIndex].value;
+
+      // Perform operation animation
+      simulateAcOperation(source);
+
+      // Update AC value after the animation completes
+      Future.delayed(Duration(milliseconds: 800), () {
+        setRegisterValue("AC", acValue + sourceValue);
+      });
+    }
+  }
+
+  // Simulate AND operation with AC
+  void simulateAnd(String source) {
+    // Get register values
+    final acIndex = registers.indexWhere((register) => register.id == "AC");
+    final sourceIndex =
+        registers.indexWhere((register) => register.id == source);
+
+    if (acIndex != -1 && sourceIndex != -1) {
+      final acValue = registers[acIndex].value;
+      final sourceValue = registers[sourceIndex].value;
+
+      // Perform operation animation
+      simulateAcOperation(source);
+
+      // Update AC value after the animation completes
+      Future.delayed(Duration(milliseconds: 800), () {
+        setRegisterValue("AC", acValue & sourceValue);
+      });
+    }
   }
 
   // Memory operations

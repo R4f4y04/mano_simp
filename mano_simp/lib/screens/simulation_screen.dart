@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:mano_simp/providers/simulation_provider.dart';
 import 'package:mano_simp/widgets/register_widget.dart';
 import 'package:mano_simp/widgets/bus_widget.dart';
-import 'package:mano_simp/widgets/alu_widget.dart';
 import 'package:mano_simp/widgets/memory_grid.dart';
 
 class SimulationScreen extends StatelessWidget {
@@ -31,11 +30,6 @@ class SimulationScreen extends StatelessWidget {
                   ...simulationProvider.registers
                       .map((register) => RegisterWidget(register: register))
                       .toList(),
-
-                  // ALU
-                  ALUWidget(
-                    aluConfig: simulationProvider.aluConfig,
-                  ),
                 ],
               ),
             ),
@@ -78,9 +72,9 @@ class SimulationScreen extends StatelessWidget {
                                 MaterialStateProperty.all(Size(80, 36)),
                           ),
                           onPressed: () {
-                            simulationProvider.simulateBusTransfer('PC', 'AR');
+                            simulationProvider.simulateAdd('DR');
                           },
-                          child: Text('PC → AR'),
+                          child: Text('AC + DR'),
                         ),
                         ElevatedButton(
                           style: ButtonStyle(
@@ -89,7 +83,7 @@ class SimulationScreen extends StatelessWidget {
                           ),
                           onPressed: () {
                             simulationProvider.setRegisterValue('AC', 0x1234);
-                            simulationProvider.setRegisterValue('PC', 0x00FF);
+                            simulationProvider.setRegisterValue('DR', 0x00FF);
                             simulationProvider.setMemoryValue(0, 0xAAAA);
                           },
                           child: Text('Set'),

@@ -3,8 +3,6 @@ class SimulationState {
   bool isHighlightedBus = false;
   String? sourceRegister;
   String? destinationRegister;
-
-  // ALU state
   bool isAluActive = false;
 
   // Memory state
