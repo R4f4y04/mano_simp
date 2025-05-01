@@ -21,7 +21,7 @@ class MemoryGrid extends StatelessWidget {
     final cellHeight = memoryConfig['cellH'] ?? 25.0;
 
     // Highlight color - same amber color for consistency
-    final highlightColor = Color(0xFFFFD54F);
+    final highlightColor = Colors.purple.shade300;
 
     return Container(
       width: MediaQuery.of(context).size.width,

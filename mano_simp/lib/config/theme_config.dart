@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ThemeConfig {
+  // Single highlight color as a Flutter Color type
+  static Color highlightColor = Colors.purple.shade300; // Amber accent color
+
   static const Map<String, dynamic> config = {
     "appName": "ManoSimP",
     "theme": {
@@ -8,7 +11,6 @@ class ThemeConfig {
       "backgroundColor": "#FFFFFF",
       "registerColor": "#F5F5F5",
       "busColor": "#E0E0E0",
-      "highlightColor": "#FFD54F",
       "errorColor": "#B00020",
       "fontFamilyMono": "RobotoMono"
     },
@@ -52,8 +54,13 @@ class ThemeConfig {
     "animations": {"highlightDurationMs": 400, "fadeCurve": "easeInOut"}
   };
 
-  static Color getColorFromHex(String hexColor) {
-    hexColor = hexColor.replaceAll("#", "");
-    return Color(int.parse('FF$hexColor', radix: 16));
+  // Helper methods to get variations of the highlight color
+  static Color get highlightColorLight => highlightColor.withOpacity(0.2);
+  static Color get highlightColorDark =>
+      Colors.purple.shade600; // Slightly darker amber
+
+  // Helper method to get highlight color with specific opacity
+  static Color highlightWithOpacity(double opacity) {
+    return highlightColor.withOpacity(opacity);
   }
 }

@@ -25,9 +25,6 @@ class BusWidget extends StatelessWidget {
       milliseconds: ThemeConfig.config['animations']['highlightDurationMs'],
     );
 
-    // Highlight color - subtle amber for better visibility
-    final highlightColor = Color(0xFFFFD54F);
-
     // Calculate connection lines for each register to the bus
     final List<Widget> connectionLines = [];
     for (var register in registers) {
@@ -49,7 +46,8 @@ class BusWidget extends StatelessWidget {
           height: isAboveBus
               ? busY - connectionStartY
               : connectionStartY - (busY + busHeight),
-          color: isHighlighted ? highlightColor : Colors.grey.shade400,
+          color:
+              isHighlighted ? ThemeConfig.highlightColor : Colors.grey.shade400,
         ),
       ));
     }
@@ -66,7 +64,7 @@ class BusWidget extends StatelessWidget {
             height: busHeight,
             decoration: BoxDecoration(
               color: simulationState.isHighlightedBus
-                  ? highlightColor
+                  ? ThemeConfig.highlightColor
                   : Colors.grey.shade400,
               borderRadius: BorderRadius.circular(1),
             ),

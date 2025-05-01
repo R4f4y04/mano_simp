@@ -34,13 +34,6 @@ class SimulationScreen extends StatelessWidget {
               ),
             ),
 
-            // Divider
-            Divider(
-              height: 2,
-              thickness: 1,
-              color: Colors.grey[300],
-            ),
-
             // Memory and controls - more compact
             Expanded(
               flex: 2, // Less space for memory and controls

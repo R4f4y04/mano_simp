@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mano_simp/providers/simulation_provider.dart';
+import 'package:mano_simp/config/theme_config.dart';
 
 class ALUWidget extends StatelessWidget {
   final Map<String, dynamic> aluConfig;
@@ -19,9 +20,6 @@ class ALUWidget extends StatelessWidget {
     final double w = 80.0;
     final double h = 40.0;
 
-    // Highlight color - subtle amber for better visibility
-    final highlightColor = Color(0xFFFFD54F);
-
     return Positioned(
       left: x,
       top: y,
@@ -33,7 +31,7 @@ class ALUWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: isActive ? highlightColor : Colors.black,
+              color: isActive ? ThemeConfig.highlightColorDark : Colors.black,
             ),
           ),
           const SizedBox(height: 2),
@@ -44,15 +42,15 @@ class ALUWidget extends StatelessWidget {
             width: w,
             height: h,
             decoration: BoxDecoration(
-              color: isActive ? highlightColor.withOpacity(0.2) : Colors.white,
+              color: isActive ? ThemeConfig.highlightColorLight : Colors.white,
               border: Border.all(
-                color: isActive ? highlightColor : Colors.black,
+                color: isActive ? ThemeConfig.highlightColor : Colors.black,
                 width: isActive ? 2.0 : 1.0,
               ),
               boxShadow: isActive
                   ? [
                       BoxShadow(
-                        color: highlightColor.withOpacity(0.3),
+                        color: ThemeConfig.highlightWithOpacity(0.3),
                         blurRadius: 4,
                         spreadRadius: 1,
                         offset: Offset(0, 1),
