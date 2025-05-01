@@ -14,11 +14,11 @@ class MemoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use fewer memory cells - just 4 for demonstration
-    const rows = 1;
-    const cols = 4;
-    const cellWidth = 60.0;
-    const cellHeight = 30.0;
+    // Get memory grid config with 3 rows and 4 columns
+    final rows = memoryConfig['rows'] ?? 3;
+    final cols = memoryConfig['cols'] ?? 4;
+    final cellWidth = memoryConfig['cellW'] ?? 50.0;
+    final cellHeight = memoryConfig['cellH'] ?? 25.0;
 
     // Highlight color - same amber color for consistency
     final highlightColor = Color(0xFFFFD54F);
@@ -37,28 +37,29 @@ class MemoryGrid extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
 
-          // Simple memory cells in a row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(cols, (col) {
-              // Calculate memory address
-              final address = col;
-              final isSelected = address == selectedAddress;
+          // Memory grid - 3 rows x 4 columns
+          for (int row = 0; row < rows; row++)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(cols, (col) {
+                // Calculate memory address
+                final address = (row * cols + col).toInt();
+                final isSelected = address == selectedAddress;
 
-              return _buildMemoryCell(
-                context,
-                0,
-                col,
-                address,
-                isSelected,
-                cellWidth,
-                cellHeight,
-                highlightColor,
-              );
-            }),
-          ),
+                return _buildMemoryCell(
+                  context,
+                  row,
+                  col,
+                  address,
+                  isSelected,
+                  cellWidth,
+                  cellHeight,
+                  highlightColor,
+                );
+              }),
+            ),
         ],
       ),
     );
@@ -84,7 +85,7 @@ class MemoryGrid extends StatelessWidget {
       duration: Duration(milliseconds: 400),
       width: width,
       height: height,
-      margin: EdgeInsets.symmetric(horizontal: 4),
+      margin: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
         color: isSelected ? highlightColor.withOpacity(0.2) : Colors.white,
         border: Border.all(
@@ -95,27 +96,23 @@ class MemoryGrid extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: highlightColor.withOpacity(0.3),
-                  blurRadius: 3,
-                  spreadRadius: 1,
+                  blurRadius: 2,
+                  spreadRadius: 0,
                   offset: Offset(0, 1),
                 )
               ]
             : null,
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Address and value in hex with improved visibility when selected
-          Text(
-            "${address.toRadixString(16).padLeft(2, '0').toUpperCase()}: ${value.toRadixString(16).padLeft(4, '0').toUpperCase()}",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.black : Colors.black87,
-              fontFamily: 'RobotoMono',
-            ),
+      child: Center(
+        child: Text(
+          "${address.toRadixString(16).padLeft(2, '0').toUpperCase()}: ${value.toRadixString(16).padLeft(2, '0').toUpperCase()}",
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.black : Colors.black87,
+            fontFamily: 'RobotoMono',
           ),
-        ],
+        ),
       ),
     );
   }

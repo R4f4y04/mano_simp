@@ -16,9 +16,9 @@ class SimulationScreen extends StatelessWidget {
       child: Scaffold(
         body: Column(
           children: [
-            // Main simulation view
+            // Main simulation view with registers and bus
             Expanded(
-              flex: 4,
+              flex: 3, // More space for registers and bus
               child: Stack(
                 children: [
                   // Bus widget needs to be first to be behind registers
@@ -34,14 +34,21 @@ class SimulationScreen extends StatelessWidget {
               ),
             ),
 
-            // Memory and controls
+            // Divider
+            Divider(
+              height: 2,
+              thickness: 1,
+              color: Colors.grey[300],
+            ),
+
+            // Memory and controls - more compact
             Expanded(
-              flex: 2,
+              flex: 2, // Less space for memory and controls
               child: Column(
                 children: [
-                  // Memory cells
+                  // Memory cells - closer to the registers
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
                     child: MemoryGrid(
                       memoryConfig: simulationProvider.memoryConfig,
                       memory: simulationProvider.simulationState.memory,
@@ -50,43 +57,52 @@ class SimulationScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Simple controls
+                  // Simple controls - more compact
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 5.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
                           style: ButtonStyle(
                             minimumSize:
-                                MaterialStateProperty.all(Size(80, 36)),
+                                MaterialStateProperty.all(Size(75, 32)),
+                            padding: MaterialStateProperty.all(
+                                EdgeInsets.symmetric(horizontal: 8)),
                           ),
                           onPressed: () {
                             simulationProvider.simulateBusTransfer('AR', 'DR');
                           },
-                          child: Text('AR → DR'),
+                          child:
+                              Text('AR → DR', style: TextStyle(fontSize: 12)),
                         ),
                         ElevatedButton(
                           style: ButtonStyle(
                             minimumSize:
-                                MaterialStateProperty.all(Size(80, 36)),
+                                MaterialStateProperty.all(Size(75, 32)),
+                            padding: MaterialStateProperty.all(
+                                EdgeInsets.symmetric(horizontal: 8)),
                           ),
                           onPressed: () {
                             simulationProvider.simulateAdd('DR');
                           },
-                          child: Text('AC + DR'),
+                          child:
+                              Text('AC + DR', style: TextStyle(fontSize: 12)),
                         ),
                         ElevatedButton(
                           style: ButtonStyle(
                             minimumSize:
-                                MaterialStateProperty.all(Size(80, 36)),
+                                MaterialStateProperty.all(Size(75, 32)),
+                            padding: MaterialStateProperty.all(
+                                EdgeInsets.symmetric(horizontal: 8)),
                           ),
                           onPressed: () {
                             simulationProvider.setRegisterValue('AC', 0x1234);
                             simulationProvider.setRegisterValue('DR', 0x00FF);
                             simulationProvider.setMemoryValue(0, 0xAAAA);
                           },
-                          child: Text('Set'),
+                          child: Text('Set', style: TextStyle(fontSize: 12)),
                         ),
                       ],
                     ),

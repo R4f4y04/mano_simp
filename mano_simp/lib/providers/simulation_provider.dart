@@ -24,26 +24,75 @@ class SimulationProvider extends ChangeNotifier {
   }
 
   void initRegisters() {
-    // Create registers with new positions - removed INPR and OUTR
-    // Positioning registers around the central bus
-    registers = [
-      // Top row - above the bus
-      Register(id: "AR", x: 30, y: 60, w: 64, h: 32),
-      Register(id: "PC", x: 114, y: 60, w: 64, h: 32),
-      Register(id: "DR", x: 198, y: 60, w: 64, h: 32),
+    // Get screen width to calculate positions
+    double screenWidth = WidgetsBinding.instance.window.physicalSize.width /
+        WidgetsBinding.instance.window.devicePixelRatio;
 
-      // Bottom row - below the bus
-      Register(id: "AC", x: 30, y: 170, w: 64, h: 32),
-      Register(id: "IR", x: 114, y: 170, w: 64, h: 32),
-      Register(id: "TR", x: 198, y: 170, w: 64, h: 32),
+    // Define sizes
+    const double registerWidth = 64;
+    const double registerHeight = 30;
+
+    // Calculate horizontal spacing to distribute registers evenly
+    double totalRegisterWidth = registerWidth * 3; // 3 registers per row
+    double availableSpace =
+        screenWidth - totalRegisterWidth - 40; // 20px padding on each side
+    double horizontalSpacing = availableSpace / 2; // Space between 3 registers
+
+    // Bus will be at y=120
+    const double busY = 120;
+    const double topRowY = busY - 50; // Above the bus
+    const double bottomRowY = busY + 50; // Below the bus
+
+    // Calculate x-coordinates for even distribution
+    double leftX = 20;
+    double centerX = leftX + registerWidth + horizontalSpacing;
+    double rightX = centerX + registerWidth + horizontalSpacing;
+
+    registers = [
+      // Top row - above the bus, evenly distributed across screen width
+      Register(
+          id: "AR", x: leftX, y: topRowY, w: registerWidth, h: registerHeight),
+      Register(
+          id: "PC",
+          x: centerX,
+          y: topRowY,
+          w: registerWidth,
+          h: registerHeight),
+      Register(
+          id: "DR", x: rightX, y: topRowY, w: registerWidth, h: registerHeight),
+
+      // Bottom row - below the bus, evenly distributed across screen width
+      Register(
+          id: "AC",
+          x: leftX,
+          y: bottomRowY,
+          w: registerWidth,
+          h: registerHeight),
+      Register(
+          id: "IR",
+          x: centerX,
+          y: bottomRowY,
+          w: registerWidth,
+          h: registerHeight),
+      Register(
+          id: "TR",
+          x: rightX,
+          y: bottomRowY,
+          w: registerWidth,
+          h: registerHeight),
     ];
     notifyListeners();
   }
 
   void initConfigs() {
     // Make the bus more prominent
-    busConfig = {"y": 120, "h": 5}; // Increased height to 5
-    memoryConfig = {};
+    busConfig = {"y": 120, "h": 5}; // Bus positioned at y=120
+    memoryConfig = {
+      "rows": 3,
+      "cols": 4,
+      "cellW": 50.0,
+      "cellH": 25.0,
+    };
   }
 
   // Methods to update register values
