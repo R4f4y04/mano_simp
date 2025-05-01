@@ -40,8 +40,12 @@ class SimulationProvider extends ChangeNotifier {
 
     // Bus will be at y=120
     const double busY = 120;
-    const double topRowY = busY - 50; // Above the bus
-    const double bottomRowY = busY + 50; // Below the bus
+    // Equal vertical spacing for top and bottom registers (50px from bus)
+    const double verticalSpacing = 50;
+    const double topRowY = busY -
+        verticalSpacing -
+        registerHeight; // Above the bus with more space
+    const double bottomRowY = busY + verticalSpacing; // Below the bus
 
     // Calculate x-coordinates for even distribution
     double leftX = 20;
