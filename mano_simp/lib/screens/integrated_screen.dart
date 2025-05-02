@@ -239,12 +239,28 @@ class _IntegratedScreenState extends State<IntegratedScreen> {
                   color: Colors.black,
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.keyboard_arrow_down),
-                onPressed: () {
-                  _panelController.close();
-                  setState(() => _isPanelOpen = false);
+              PopupMenuButton<String>(
+                icon: Icon(Icons.arrow_drop_down),
+                onSelected: (String value) {
+                  if (value == 'sample1') {
+                    editorProvider.codeController.text =
+                        'ORG 100\nLDA 200\nADD 201\nSTA 202\nHLT\nORG 200\nDEC 10\nDEC 20\nDEC 0\nEND';
+                  } else if (value == 'sample2') {
+                    editorProvider.codeController.text =
+                        'ORG 100\nLOAD X\nADD Y\nSTORE Z\nHLT\nX, DEC 25\nY, DEC 50\nZ, DEC 0\nEND';
+                  }
+                  editorProvider.updateCode();
                 },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'sample1',
+                    child: Text('Addition Example'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'sample2',
+                    child: Text('Load/Store Example'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -323,22 +339,6 @@ class _IntegratedScreenState extends State<IntegratedScreen> {
                 ),
                 SizedBox(width: 8),
                 // Sample code button
-                OutlinedButton(
-                  onPressed: () {
-                    editorProvider.codeController.text = '''ORG 100
-LDA 500
-ADD 501
-STA 502
-HLT
-ORG 500
-DEC 75
-DEC 25
-DEC 0
-END''';
-                    editorProvider.updateCode();
-                  },
-                  child: Text('Sample Code'),
-                ),
               ],
             ),
           ),
