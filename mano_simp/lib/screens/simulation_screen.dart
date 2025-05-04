@@ -4,6 +4,7 @@ import 'package:mano_simp/providers/simulation_provider.dart';
 import 'package:mano_simp/widgets/register_widget.dart';
 import 'package:mano_simp/widgets/bus_widget.dart';
 import 'package:mano_simp/widgets/memory_grid.dart';
+import 'package:mano_simp/config/theme_config.dart';
 
 class SimulationScreen extends StatelessWidget {
   const SimulationScreen({Key? key}) : super(key: key);
@@ -14,6 +15,13 @@ class SimulationScreen extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            ThemeConfig.config['appName'],
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          elevation: 0,
+        ),
         body: Column(
           children: [
             // Main simulation view with registers and bus

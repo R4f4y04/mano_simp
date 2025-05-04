@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mano_simp/providers/simulation_provider.dart';
-import 'package:mano_simp/providers/editor_provider.dart';
 import 'package:mano_simp/screens/simulation_screen.dart';
-import 'package:mano_simp/screens/editor_screen.dart';
 import 'package:mano_simp/config/theme_config.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,7 +10,6 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => SimulationProvider()),
-        ChangeNotifierProvider(create: (context) => EditorProvider()),
       ],
       child: const ManoSimpApp(),
     ),
@@ -76,68 +73,7 @@ class ManoSimpApp extends StatelessWidget {
         ),
         fontFamily: GoogleFonts.roboto().fontFamily,
       ),
-      home: const HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const SimulationScreen(),
-    const EditorScreen(),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize simulation data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SimulationProvider>().initRegisters();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          ThemeConfig.config['appName'],
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
-      ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.memory),
-            label: 'Simulation',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.code),
-            label: 'Editor',
-          ),
-        ],
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-      ),
+      home: const SimulationScreen(),
     );
   }
 }
