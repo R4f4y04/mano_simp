@@ -349,6 +349,7 @@ class SimulationProvider extends ChangeNotifier {
   // Instruction cycle phases
   void fetchPhase() {
     simulationState.currentPhase = 1; // Fetch
+    clearAllHighlights();
 
     // PC → AR
     final pcIndex = registers.indexWhere((register) => register.id == "PC");
@@ -362,30 +363,43 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
 
     // After a delay, highlight AR and set its value
-    Future.delayed(Duration(milliseconds: 300), () {
+    Future.delayed(Duration(milliseconds: 600), () {
       setRegisterValue("AR", pcValue);
       highlightRegister("AR");
-      clearAllHighlights("PC");
+      // Keep PC highlighted too
+      notifyListeners();
 
       // Select the memory address
       selectMemoryAddress(pcValue);
 
       // After a delay, fetch from memory to IR
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(Duration(milliseconds: 600), () {
+        // Clear previous highlights but keep the bus lit
+        clearAllHighlights();
+        simulationState.isHighlightedBus = true;
+        simulationState.sourceRegister = "AR";
+        simulationState.destinationRegister = "IR";
+        highlightRegister("AR");
+
         final memValue = getMemoryValue(pcValue);
-        setRegisterValue("IR", memValue);
-        highlightRegister("IR");
-        clearAllHighlights("AR");
+        Future.delayed(Duration(milliseconds: 400), () {
+          setRegisterValue("IR", memValue);
+          highlightRegister("IR");
+          notifyListeners();
 
-        // Increment PC
-        Future.delayed(Duration(milliseconds: 300), () {
-          setRegisterValue("PC", pcValue + 1);
-          highlightRegister("PC");
-
-          // Clear all highlights
-          Future.delayed(Duration(milliseconds: 300), () {
+          // Increment PC after a pause
+          Future.delayed(Duration(milliseconds: 600), () {
+            // Clear previous highlights
             clearAllHighlights();
+            highlightRegister("PC");
+            setRegisterValue("PC", pcValue + 1);
             notifyListeners();
+
+            // Clear all highlights
+            Future.delayed(Duration(milliseconds: 600), () {
+              clearAllHighlights();
+              notifyListeners();
+            });
           });
         });
       });
@@ -394,9 +408,11 @@ class SimulationProvider extends ChangeNotifier {
 
   void decodePhase() {
     simulationState.currentPhase = 2; // Decode
+    clearAllHighlights();
 
-    // Highlight IR
+    // Highlight IR with stronger visual feedback
     highlightRegister("IR");
+    notifyListeners();
 
     // Get IR value
     final irIndex = registers.indexWhere((register) => register.id == "IR");
@@ -487,13 +503,29 @@ class SimulationProvider extends ChangeNotifier {
       }
     }
 
-    // Set the decoded instruction text
-    simulationState.decodedInstructionText = decodedText;
-    notifyListeners();
+    // Set the decoded instruction text after a brief delay
+    Future.delayed(Duration(milliseconds: 300), () {
+      simulationState.decodedInstructionText = decodedText;
+
+      // Add additional visual feedback by flashing IR twice
+      Future.delayed(Duration(milliseconds: 300), () {
+        clearAllHighlights();
+        notifyListeners();
+
+        Future.delayed(Duration(milliseconds: 200), () {
+          highlightRegister("IR");
+          notifyListeners();
+        });
+      });
+    });
   }
 
   void executePhase() {
     simulationState.currentPhase = 3; // Execute
+    clearAllHighlights();
+
+    // First highlight IR to show we're reading from it
+    highlightRegister("IR");
 
     // Get IR value
     final irIndex = registers.indexWhere((register) => register.id == "IR");
@@ -504,30 +536,68 @@ class SimulationProvider extends ChangeNotifier {
     final opcode = (irValue & 0x7000) >> 12;
     final address = irValue & 0x0FFF;
 
-    // Get effective address
-    int effectiveAddress = address;
-    if (addressingMode == 1) {
-      // Indirect addressing: fetch address from memory[address]
-      effectiveAddress = getMemoryValue(address);
-    }
+    // After a delay, handle addressing mode
+    Future.delayed(Duration(milliseconds: 500), () {
+      // Get effective address
+      int effectiveAddress = address;
 
-    // Set AR to the effective address (for most instructions)
-    setRegisterValue("AR", effectiveAddress);
+      // For indirect addressing, show the memory reference
+      if (addressingMode == 1) {
+        // First set AR to the pointer address
+        setRegisterValue("AR", address);
+        highlightRegister("AR");
+        selectMemoryAddress(address);
 
-    // Execute based on opcode
+        // Show bus activity
+        simulationState.isHighlightedBus = true;
+        simulationState.sourceRegister = "AR";
+        simulationState.destinationRegister = "DR";
+        notifyListeners();
+
+        // After delay, fetch indirect address
+        Future.delayed(Duration(milliseconds: 600), () {
+          // Fetch from memory to DR
+          final indirectAddr = getMemoryValue(address);
+          setRegisterValue("DR", indirectAddr);
+          highlightRegister("DR");
+
+          // Update effective address
+          effectiveAddress = indirectAddr;
+
+          // Continue execution after delay
+          Future.delayed(Duration(milliseconds: 600), () {
+            // Set AR to the effective address
+            setRegisterValue("AR", effectiveAddress);
+            clearAllHighlights();
+            highlightRegister("AR");
+
+            // Execute the instruction
+            _executeInstructionWithDelay(opcode, effectiveAddress);
+          });
+        });
+      } else {
+        // Direct addressing - just set AR and continue
+        setRegisterValue("AR", effectiveAddress);
+        highlightRegister("AR");
+        selectMemoryAddress(effectiveAddress);
+
+        // Execute the instruction after a delay
+        Future.delayed(Duration(milliseconds: 500), () {
+          _executeInstructionWithDelay(opcode, effectiveAddress);
+        });
+      }
+    });
+  }
+
+  // Helper method to execute instruction with proper sequencing
+  void _executeInstructionWithDelay(int opcode, int address) {
     if (opcode != 7) {
       // Memory-reference instructions
-      executeMemoryReferenceInstruction(opcode, effectiveAddress);
+      executeMemoryReferenceInstruction(opcode, address);
     } else {
       // Register-reference instructions
       executeRegisterReferenceInstruction(address);
     }
-
-    // Clear highlights after execution
-    Future.delayed(Duration(milliseconds: 800), () {
-      clearAllHighlights();
-      notifyListeners();
-    });
   }
 
   // Helper method to find the first set bit (1) in a number
@@ -618,23 +688,42 @@ class SimulationProvider extends ChangeNotifier {
   void _executeAnd(int address) {
     // Load Memory[AR] into Data Register (DR)
     final memValue = getMemoryValue(address);
-    setRegisterValue("DR", memValue);
-    highlightRegister("DR");
 
-    // Get current AC value
-    final acIndex = registers.indexWhere((register) => register.id == "AC");
-    final acValue = registers[acIndex].value;
+    // First show memory access
+    simulationState.isHighlightedBus = true;
+    simulationState.sourceRegister = "AR";
+    simulationState.destinationRegister = "DR";
+    notifyListeners();
 
-    // After a delay, perform AND operation
-    Future.delayed(Duration(milliseconds: 300), () {
-      highlightRegister("AC");
+    // After a brief delay, update DR
+    Future.delayed(Duration(milliseconds: 400), () {
+      setRegisterValue("DR", memValue);
+      highlightRegister("DR");
 
-      // Perform AND operation
-      final result = acValue & memValue;
+      // Get current AC value
+      final acIndex = registers.indexWhere((register) => register.id == "AC");
+      final acValue = registers[acIndex].value;
 
-      // Set result in AC
-      Future.delayed(Duration(milliseconds: 300), () {
-        setRegisterValue("AC", result);
+      // After a delay, perform AND operation with bus highlighting
+      Future.delayed(Duration(milliseconds: 500), () {
+        // Update bus highlighting for DR to AC
+        simulationState.sourceRegister = "DR";
+        simulationState.destinationRegister = "AC";
+        highlightRegister("AC");
+        notifyListeners();
+
+        // Perform AND operation
+        final result = acValue & memValue;
+
+        // Set result in AC
+        Future.delayed(Duration(milliseconds: 500), () {
+          setRegisterValue("AC", result);
+
+          // Clear highlights after showing the result
+          Future.delayed(Duration(milliseconds: 400), () {
+            clearAllHighlights();
+          });
+        });
       });
     });
   }
@@ -642,28 +731,47 @@ class SimulationProvider extends ChangeNotifier {
   void _executeAdd(int address) {
     // Load Memory[AR] into Data Register (DR)
     final memValue = getMemoryValue(address);
-    setRegisterValue("DR", memValue);
-    highlightRegister("DR");
 
-    // Get current AC value
-    final acIndex = registers.indexWhere((register) => register.id == "AC");
-    final acValue = registers[acIndex].value;
+    // First show memory access
+    simulationState.isHighlightedBus = true;
+    simulationState.sourceRegister = "AR";
+    simulationState.destinationRegister = "DR";
+    notifyListeners();
 
-    // After a delay, perform ADD operation
-    Future.delayed(Duration(milliseconds: 300), () {
-      highlightRegister("AC");
+    // After a brief delay, update DR
+    Future.delayed(Duration(milliseconds: 400), () {
+      setRegisterValue("DR", memValue);
+      highlightRegister("DR");
 
-      // Perform ADD operation
-      final result = acValue + memValue;
+      // Get current AC value
+      final acIndex = registers.indexWhere((register) => register.id == "AC");
+      final acValue = registers[acIndex].value;
 
-      // Set result in AC
-      Future.delayed(Duration(milliseconds: 300), () {
-        setRegisterValue("AC", result & 0xFFFF); // Apply 16-bit mask
+      // After a delay, perform ADD operation with bus highlighting
+      Future.delayed(Duration(milliseconds: 500), () {
+        // Update bus highlighting for DR to AC
+        simulationState.sourceRegister = "DR";
+        simulationState.destinationRegister = "AC";
+        highlightRegister("AC");
+        notifyListeners();
 
-        // Set E-bit if overflow
-        if (result > 0xFFFF) {
-          simulationState.eBit = true;
-        }
+        // Perform ADD operation
+        final result = acValue + memValue;
+
+        // Set result in AC
+        Future.delayed(Duration(milliseconds: 500), () {
+          setRegisterValue("AC", result & 0xFFFF); // Apply 16-bit mask
+
+          // Set E-bit if overflow
+          if (result > 0xFFFF) {
+            simulationState.eBit = true;
+          }
+
+          // Clear highlights after showing the result
+          Future.delayed(Duration(milliseconds: 400), () {
+            clearAllHighlights();
+          });
+        });
       });
     });
   }
@@ -671,13 +779,36 @@ class SimulationProvider extends ChangeNotifier {
   void _executeLda(int address) {
     // Load Memory[AR] into Data Register (DR)
     final memValue = getMemoryValue(address);
-    setRegisterValue("DR", memValue);
-    highlightRegister("DR");
 
-    // After a delay, transfer to AC
-    Future.delayed(Duration(milliseconds: 300), () {
-      setRegisterValue("AC", memValue);
-      highlightRegister("AC");
+    // First show memory access
+    simulationState.isHighlightedBus = true;
+    simulationState.sourceRegister = "AR";
+    simulationState.destinationRegister = "DR";
+    notifyListeners();
+
+    // After a brief delay, update DR
+    Future.delayed(Duration(milliseconds: 400), () {
+      setRegisterValue("DR", memValue);
+      highlightRegister("DR");
+
+      // After a delay, transfer to AC with bus highlighting
+      Future.delayed(Duration(milliseconds: 500), () {
+        // Update bus highlighting for DR to AC
+        simulationState.sourceRegister = "DR";
+        simulationState.destinationRegister = "AC";
+        notifyListeners();
+
+        // Update AC
+        Future.delayed(Duration(milliseconds: 300), () {
+          setRegisterValue("AC", memValue);
+          highlightRegister("AC");
+
+          // Clear highlights after showing the result
+          Future.delayed(Duration(milliseconds: 600), () {
+            clearAllHighlights();
+          });
+        });
+      });
     });
   }
 
@@ -686,13 +817,28 @@ class SimulationProvider extends ChangeNotifier {
     final acIndex = registers.indexWhere((register) => register.id == "AC");
     final acValue = registers[acIndex].value;
 
-    // Highlight AC
+    // Highlight AC and show bus activity
     highlightRegister("AC");
+    simulationState.isHighlightedBus = true;
+    simulationState.sourceRegister = "AC";
+    simulationState.destinationRegister = null;
+    notifyListeners();
 
-    // After delay, store to memory
-    Future.delayed(Duration(milliseconds: 300), () {
+    // After delay, store to memory and highlight AR
+    Future.delayed(Duration(milliseconds: 500), () {
+      highlightRegister("AR");
+      simulationState.destinationRegister = "AR"; // Visual indication
       selectMemoryAddress(address);
-      setMemoryValue(address, acValue);
+
+      // After another delay, complete the store
+      Future.delayed(Duration(milliseconds: 500), () {
+        setMemoryValue(address, acValue);
+
+        // Clear highlights after showing the result
+        Future.delayed(Duration(milliseconds: 400), () {
+          clearAllHighlights();
+        });
+      });
     });
   }
 
