@@ -60,13 +60,17 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
 
+    // Calculate available height for dropdown
+    final double maxHeight = 150.0; // Maximum height for dropdown
+
     return OverlayEntry(
       builder: (context) => Positioned(
         width: size.width,
         child: CompositedTransformFollower(
           link: _layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, -widget.actions.length * 36.0),
+          offset: Offset(
+              0, size.height + 2), // Position below the button with small gap
           child: Material(
             elevation: 4.0,
             shape: RoundedRectangleBorder(
@@ -77,44 +81,50 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(color: widget.color, width: 1.0),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Actions list
-                  ...widget.actions.map((action) => InkWell(
-                        onTap: () {
-                          _hideDropdown();
-                          action.onPressed();
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: widget.color.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                offset: Offset(0, 1),
-                                blurRadius: 2,
-                              ),
-                            ],
-                          ),
-                          margin:
-                              EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          child: Text(
-                            action.label,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+              constraints: BoxConstraints(
+                maxHeight: maxHeight, // Limit maximum height
+              ),
+              child: SingleChildScrollView(
+                // Make content scrollable if it exceeds the maxHeight
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Actions list
+                    ...widget.actions.map((action) => InkWell(
+                          onTap: () {
+                            _hideDropdown();
+                            action.onPressed();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: widget.color.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 6),
+                            child: Text(
+                              action.label,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                        ),
-                      )),
-                  SizedBox(height: 4),
-                ],
+                        )),
+                    SizedBox(height: 4),
+                  ],
+                ),
               ),
             ),
           ),
@@ -157,7 +167,7 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
               ),
               SizedBox(width: 4),
               Icon(
-                _isOpen ? Icons.arrow_drop_down : Icons.arrow_drop_up,
+                _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                 color: Colors.white,
                 size: 18,
               ),

@@ -113,7 +113,7 @@ class MemoryGrid extends StatelessWidget {
           child: Text(
             "${address.toRadixString(16).padLeft(2, '0').toUpperCase()}: ${value.toRadixString(16).padLeft(4, '0').toUpperCase()}",
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 12, // Increased from 10 to 12
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected ? Colors.black : Colors.black87,
               fontFamily: 'RobotoMono',

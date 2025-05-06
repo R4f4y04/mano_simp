@@ -25,9 +25,9 @@ class SimulationScreen extends StatelessWidget {
         ),
         body: Column(
           children: [
-            // Main simulation view with registers and bus
+            // Main simulation view with registers and bus - reduced flex
             Expanded(
-              flex: 3, // More space for registers and bus
+              flex: 2, // Reduced from 3 to 2
               child: Stack(
                 children: [
                   // Bus widget needs to be first to be behind registers
@@ -43,11 +43,12 @@ class SimulationScreen extends StatelessWidget {
               ),
             ),
 
-            // Action buttons in a horizontal row
+            // Action buttons in a horizontal row - made more compact
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              constraints: BoxConstraints(maxHeight: 56),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, vertical: 4.0), // Reduced vertical padding
+              constraints:
+                  BoxConstraints(maxHeight: 48), // Reduced from 56 to 48
               child: Row(
                 children: [
                   // Bus Operations
@@ -409,11 +410,14 @@ class SimulationScreen extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 2), // Minimal spacing
 
-            // Memory cells
+            // Memory cells - increased flex for more space
             Expanded(
+              flex: 3, // Increased from default 1 to 3
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5.0),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 2.0), // Reduced padding
                 child: MemoryGrid(
                   memoryConfig: simulationProvider.memoryConfig,
                   memory: simulationProvider.simulationState.memory,
@@ -422,6 +426,9 @@ class SimulationScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            // Small bottom padding to prevent content from touching the edge
+            SizedBox(height: 4),
           ],
         ),
       ),

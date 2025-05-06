@@ -92,10 +92,10 @@ class SimulationProvider extends ChangeNotifier {
     // Make the bus more prominent
     busConfig = {"y": 120, "h": 5}; // Bus positioned at y=120
     memoryConfig = {
-      "rows": 3,
+      "rows": 4, // Increased from 3 to 4 rows
       "cols": 4,
-      "cellW": 50.0,
-      "cellH": 25.0,
+      "cellW": 60.0, // Increased from 50.0 to 60.0
+      "cellH": 32.0, // Increased from 25.0 to 32.0
     };
   }
 
