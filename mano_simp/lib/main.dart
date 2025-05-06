@@ -43,9 +43,11 @@ class ManoSimpApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: whiteColor,
         appBarTheme: AppBarTheme(
-          backgroundColor: blackColor,
-          foregroundColor: whiteColor,
+          backgroundColor: Colors.transparent,
+          foregroundColor: blackColor,
           elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: blackColor),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -53,7 +55,7 @@ class ManoSimpApp extends StatelessWidget {
             foregroundColor: whiteColor,
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ),
@@ -62,7 +64,7 @@ class ManoSimpApp extends StatelessWidget {
             foregroundColor: blackColor,
             side: BorderSide(color: blackColor),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ),

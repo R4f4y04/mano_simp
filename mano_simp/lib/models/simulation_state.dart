@@ -14,4 +14,12 @@ class SimulationState {
 
   // Simulation status
   bool isRunning = false;
+
+  // Instruction mode state
+  bool isInstructionMode = false;
+  String? decodedInstructionText;
+  int currentPhase = 0; // 0: None, 1: Fetch, 2: Decode, 3: Execute
+
+  // E-bit for register reference operations
+  bool eBit = false;
 }

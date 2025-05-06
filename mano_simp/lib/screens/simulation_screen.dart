@@ -6,6 +6,7 @@ import 'package:mano_simp/widgets/bus_widget.dart';
 import 'package:mano_simp/widgets/memory_grid.dart';
 import 'package:mano_simp/config/theme_config.dart';
 import 'package:mano_simp/widgets/custom_dropdown_button.dart';
+import 'package:mano_simp/screens/instruction_screen.dart';
 
 class SimulationScreen extends StatelessWidget {
   const SimulationScreen({Key? key}) : super(key: key);
@@ -17,11 +18,48 @@ class SimulationScreen extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
           title: Text(
             ThemeConfig.config['appName'],
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
+          actions: [
+            // Sample program menu button
+            PopupMenuButton<String>(
+              icon: Icon(Icons.code),
+              tooltip: "Load Sample Program",
+              onSelected: (programName) {
+                simulationProvider.loadSampleProgram(programName);
+              },
+              itemBuilder: (context) {
+                return simulationProvider.samplePrograms.keys
+                    .map((programName) {
+                  return PopupMenuItem<String>(
+                    value: programName,
+                    child: Text(programName),
+                  );
+                }).toList();
+              },
+            ),
+            // Switch to instruction mode
+            IconButton(
+              icon: Icon(Icons.school), // Education/instruction icon
+              tooltip: "Switch to Instruction Mode",
+              onPressed: () {
+                simulationProvider.toggleInstructionMode();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => InstructionScreen()),
+                );
+              },
+            ),
+          ],
         ),
         body: Column(
           children: [
