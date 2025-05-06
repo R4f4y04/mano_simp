@@ -50,7 +50,7 @@ class SimulationScreen extends StatelessWidget {
               constraints: BoxConstraints(maxHeight: 56),
               child: Row(
                 children: [
-                  // Data Transfer
+                  // Bus Operations
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -60,9 +60,34 @@ class SimulationScreen extends StatelessWidget {
                         color: Colors.blueGrey.shade800,
                         actions: [
                           DropdownAction(
-                            label: "AR → DR",
+                            label: "PC → AR",
                             onPressed: () => simulationProvider
-                                .simulateBusTransfer('AR', 'DR'),
+                                .simulateBusTransfer('PC', 'AR'),
+                          ),
+                          DropdownAction(
+                            label: "M[AR] → DR",
+                            onPressed: () {
+                              // First, simulate memory to DR transfer
+                              int arIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AR');
+                              int arValue =
+                                  simulationProvider.registers[arIndex].value;
+
+                              // Get memory value at AR address
+                              int memValue =
+                                  simulationProvider.getMemoryValue(arValue);
+
+                              // Simulate memory read, then set DR value
+                              simulationProvider.highlightRegister('AR');
+                              Future.delayed(Duration(milliseconds: 300), () {
+                                simulationProvider.setRegisterValue(
+                                    'DR', memValue);
+                                simulationProvider.highlightRegister('DR');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.clearAllHighlights();
+                                });
+                              });
+                            },
                           ),
                           DropdownAction(
                             label: "DR → AC",
@@ -70,92 +95,311 @@ class SimulationScreen extends StatelessWidget {
                                 .simulateBusTransfer('DR', 'AC'),
                           ),
                           DropdownAction(
-                            label: "AC → AR",
+                            label: "AC → TR",
                             onPressed: () => simulationProvider
-                                .simulateBusTransfer('AC', 'AR'),
+                                .simulateBusTransfer('AC', 'TR'),
                           ),
                           DropdownAction(
-                            label: "PC → AR",
+                            label: "TR → AC",
                             onPressed: () => simulationProvider
-                                .simulateBusTransfer('PC', 'AR'),
+                                .simulateBusTransfer('TR', 'AC'),
                           ),
                           DropdownAction(
-                            label: "IR → AR",
-                            onPressed: () => simulationProvider
-                                .simulateBusTransfer('IR', 'AR'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Operations
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: CustomDropdownButton(
-                        label: "Mem Ref",
-                        icon: Icons.calculate,
-                        color: Colors.green.shade700,
-                        actions: [
-                          DropdownAction(
-                            label: "AC + DR",
-                            onPressed: () =>
-                                simulationProvider.simulateAdd('DR'),
-                          ),
-                          DropdownAction(
-                            label: "AC AND DR",
-                            onPressed: () =>
-                                simulationProvider.simulateAnd('DR'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Register Values
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: CustomDropdownButton(
-                        label: "Register Ref",
-                        icon: Icons.memory,
-                        color: Colors.purple.shade700,
-                        actions: [
-                          DropdownAction(
-                            label: "Set Values",
+                            label: "AC → M[AR]",
                             onPressed: () {
-                              simulationProvider.setRegisterValue('AC', 0x1234);
-                              simulationProvider.setRegisterValue('DR', 0x00FF);
-                              simulationProvider.setRegisterValue('AR', 0x0008);
-                              simulationProvider.setRegisterValue('PC', 0x0100);
-                              simulationProvider.setRegisterValue('IR', 0x5678);
-                              simulationProvider.setRegisterValue('TR', 0xABCD);
-                              simulationProvider.setMemoryValue(0, 0xAAAA);
-                            },
-                          ),
-                          DropdownAction(
-                            label: "Clear All",
-                            onPressed: () {
-                              simulationProvider.setRegisterValue('AC', 0);
-                              simulationProvider.setRegisterValue('DR', 0);
-                              simulationProvider.setRegisterValue('AR', 0);
-                              simulationProvider.setRegisterValue('PC', 0);
-                              simulationProvider.setRegisterValue('IR', 0);
-                              simulationProvider.setRegisterValue('TR', 0);
+                              // Get AR value to determine memory address
+                              int arIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AR');
+                              int arValue =
+                                  simulationProvider.registers[arIndex].value;
+
+                              // Get AC value to store in memory
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+                              int acValue =
+                                  simulationProvider.registers[acIndex].value;
+
+                              // Simulate memory write
+                              simulationProvider.highlightRegister('AC');
+                              Future.delayed(Duration(milliseconds: 300), () {
+                                simulationProvider.highlightRegister('AR');
+                                simulationProvider.setMemoryValue(
+                                    arValue, acValue);
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.clearAllHighlights();
+                                });
+                              });
                             },
                           ),
                           DropdownAction(
                             label: "PC++",
                             onPressed: () {
-                              final index = simulationProvider.registers
+                              int pcIndex = simulationProvider.registers
                                   .indexWhere((r) => r.id == 'PC');
-                              if (index != -1) {
+                              if (pcIndex != -1) {
                                 int currentValue =
-                                    simulationProvider.registers[index].value;
-                                simulationProvider.setRegisterValue(
-                                    'PC', currentValue + 1);
+                                    simulationProvider.registers[pcIndex].value;
+                                simulationProvider.highlightRegister('PC');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.setRegisterValue(
+                                      'PC', currentValue + 1);
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    simulationProvider.clearAllHighlights();
+                                  });
+                                });
                               }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Memory Reference Operations
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: CustomDropdownButton(
+                        label: "Memory Ref",
+                        icon: Icons.memory,
+                        color: Colors.green.shade700,
+                        actions: [
+                          DropdownAction(
+                            label: "AND",
+                            onPressed: () =>
+                                simulationProvider.simulateAnd('DR'),
+                          ),
+                          DropdownAction(
+                            label: "ADD",
+                            onPressed: () =>
+                                simulationProvider.simulateAdd('DR'),
+                          ),
+                          DropdownAction(
+                            label: "LDA",
+                            onPressed: () {
+                              // LDA operation: M[AR] → DR → AC
+                              int arIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AR');
+
+                              if (arIndex != -1) {
+                                int arValue =
+                                    simulationProvider.registers[arIndex].value;
+
+                                // Show that we're accessing AR
+                                simulationProvider.highlightRegister('AR');
+                                simulationProvider.selectMemoryAddress(arValue);
+
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  // Get memory value at AR address
+                                  int memValue = simulationProvider
+                                      .getMemoryValue(arValue);
+
+                                  // Step 1: M[AR] → DR
+                                  simulationProvider.setRegisterValue(
+                                      'DR', memValue);
+                                  simulationProvider.highlightRegister('DR');
+
+                                  // Step 2: DR → AC
+                                  Future.delayed(Duration(milliseconds: 400),
+                                      () {
+                                    simulationProvider.setRegisterValue(
+                                        'AC', memValue);
+                                    simulationProvider.highlightRegister('AC');
+                                    simulationProvider.clearAllHighlights('DR');
+
+                                    // Clear highlights
+                                    Future.delayed(Duration(milliseconds: 400),
+                                        () {
+                                      simulationProvider.clearAllHighlights();
+                                    });
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                          DropdownAction(
+                            label: "STA",
+                            onPressed: () {
+                              // STA operation: AC → M[AR]
+                              int arIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AR');
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+
+                              if (arIndex != -1 && acIndex != -1) {
+                                int arValue =
+                                    simulationProvider.registers[arIndex].value;
+                                int acValue =
+                                    simulationProvider.registers[acIndex].value;
+
+                                // Show that we're accessing the AC and AR
+                                simulationProvider.highlightRegister('AC');
+                                simulationProvider
+                                    .simulationState.isHighlightedBus = true;
+                                simulationProvider
+                                    .simulationState.sourceRegister = 'AC';
+                                simulationProvider
+                                    .simulationState.destinationRegister = null;
+
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  // Also highlight AR as the destination address
+                                  simulationProvider.highlightRegister('AR');
+                                  // Select memory address to visually indicate where we're storing
+                                  simulationProvider
+                                      .selectMemoryAddress(arValue);
+
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    // Actually store the value in memory
+                                    simulationProvider.setMemoryValue(
+                                        arValue, acValue);
+
+                                    // Clear highlights after a delay
+                                    Future.delayed(Duration(milliseconds: 400),
+                                        () {
+                                      simulationProvider.clearAllHighlights();
+                                    });
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Register Reference Operations
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: CustomDropdownButton(
+                        label: "Register Ref",
+                        icon: Icons.settings,
+                        color: Colors.purple.shade700,
+                        actions: [
+                          DropdownAction(
+                            label: "INC",
+                            onPressed: () {
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+                              if (acIndex != -1) {
+                                int currentValue =
+                                    simulationProvider.registers[acIndex].value;
+                                simulationProvider.highlightRegister('AC');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.setRegisterValue(
+                                      'AC', currentValue + 1);
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    simulationProvider.clearAllHighlights();
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                          DropdownAction(
+                            label: "CIL",
+                            onPressed: () {
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+                              if (acIndex != -1) {
+                                int currentValue =
+                                    simulationProvider.registers[acIndex].value;
+                                // Simulate circulate left (shift left with wrap)
+                                int mask = 0xFFFF; // 16-bit mask
+                                int msb = (currentValue & 0x8000) >>
+                                    15; // Get MSB (bit 15)
+                                int newValue = ((currentValue << 1) & mask) |
+                                    msb; // Shift left and wrap MSB
+
+                                simulationProvider.highlightRegister('AC');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.setRegisterValue(
+                                      'AC', newValue);
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    simulationProvider.clearAllHighlights();
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                          DropdownAction(
+                            label: "CIR",
+                            onPressed: () {
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+                              if (acIndex != -1) {
+                                int currentValue =
+                                    simulationProvider.registers[acIndex].value;
+                                // Simulate circulate right (shift right with wrap)
+                                int lsb =
+                                    currentValue & 0x0001; // Get LSB (bit 0)
+                                int shiftedValue =
+                                    currentValue >> 1; // Shift right
+                                int newValue = shiftedValue |
+                                    (lsb << 15); // Place LSB at MSB position
+
+                                simulationProvider.highlightRegister('AC');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.setRegisterValue(
+                                      'AC', newValue);
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    simulationProvider.clearAllHighlights();
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                          DropdownAction(
+                            label: "CME",
+                            onPressed: () {
+                              // Since E is not explicitly modeled, we'll just show a simulation
+                              // In a real implementation, this would toggle the E bit
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text('E bit complemented'),
+                                duration: Duration(seconds: 1),
+                              ));
+                            },
+                          ),
+                          DropdownAction(
+                            label: "CMA",
+                            onPressed: () {
+                              int acIndex = simulationProvider.registers
+                                  .indexWhere((r) => r.id == 'AC');
+                              if (acIndex != -1) {
+                                int currentValue =
+                                    simulationProvider.registers[acIndex].value;
+                                // 1's complement (invert all bits)
+                                int newValue = (~currentValue) &
+                                    0xFFFF; // Apply 16-bit mask
+
+                                simulationProvider.highlightRegister('AC');
+                                Future.delayed(Duration(milliseconds: 300), () {
+                                  simulationProvider.setRegisterValue(
+                                      'AC', newValue);
+                                  Future.delayed(Duration(milliseconds: 300),
+                                      () {
+                                    simulationProvider.clearAllHighlights();
+                                  });
+                                });
+                              }
+                            },
+                          ),
+                          DropdownAction(
+                            label: "CLE",
+                            onPressed: () {
+                              // Since E is not explicitly modeled, we'll just show a simulation
+                              // In a real implementation, this would clear the E bit
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text('E bit cleared'),
+                                duration: Duration(seconds: 1),
+                              ));
                             },
                           ),
                         ],

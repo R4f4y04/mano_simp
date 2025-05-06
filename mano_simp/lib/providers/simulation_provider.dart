@@ -117,9 +117,11 @@ class SimulationProvider extends ChangeNotifier {
     }
   }
 
-  void clearAllHighlights() {
+  void clearAllHighlights([String? except]) {
     for (var register in registers) {
-      register.isHighlighted = false;
+      if (except == null || register.id != except) {
+        register.isHighlighted = false;
+      }
     }
     simulationState.isHighlightedBus = false;
     simulationState.sourceRegister = null;
@@ -132,23 +134,32 @@ class SimulationProvider extends ChangeNotifier {
     // First clear any existing highlights
     clearAllHighlights();
 
-    // Highlight source register and bus
-    highlightRegister(from);
-    simulationState.isHighlightedBus = true;
-    simulationState.sourceRegister = from;
-    simulationState.destinationRegister = to;
-    notifyListeners();
+    // Get source register value
+    final fromIndex = registers.indexWhere((register) => register.id == from);
 
-    // After a delay, highlight destination register
-    Future.delayed(Duration(milliseconds: 400), () {
-      highlightRegister(to);
+    if (fromIndex != -1) {
+      final sourceValue = registers[fromIndex].value;
+
+      // Highlight source register and bus
+      highlightRegister(from);
+      simulationState.isHighlightedBus = true;
+      simulationState.sourceRegister = from;
+      simulationState.destinationRegister = to;
       notifyListeners();
 
-      // After another delay, clear all highlights
+      // After a delay, highlight destination register and transfer the value
       Future.delayed(Duration(milliseconds: 400), () {
-        clearAllHighlights();
+        highlightRegister(to);
+        // Actually transfer the value from source to destination register
+        setRegisterValue(to, sourceValue);
+        notifyListeners();
+
+        // After another delay, clear all highlights
+        Future.delayed(Duration(milliseconds: 400), () {
+          clearAllHighlights();
+        });
       });
-    });
+    }
   }
 
   // AC operation animation (replacing ALU operation)
@@ -227,6 +238,18 @@ class SimulationProvider extends ChangeNotifier {
       simulationState.memory[row][col] = value;
       notifyListeners();
     }
+  }
+
+  // Get memory value
+  int getMemoryValue(int address) {
+    final row = address ~/ 8;
+    final col = address % 8;
+
+    if (row < simulationState.memory.length &&
+        col < simulationState.memory[row].length) {
+      return simulationState.memory[row][col];
+    }
+    return 0; // Return 0 if address is out of bounds
   }
 
   void selectMemoryAddress(int address) {
